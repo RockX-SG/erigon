@@ -18,6 +18,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/ledgerwatch/erigon-lib/kv"
 	"github.com/ledgerwatch/erigon/cl/cltypes"
@@ -36,6 +37,8 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 )
+
+var gossipSubHeartbeatInterval = 700 * time.Millisecond
 
 type Sentinel struct {
 	started    bool
@@ -209,6 +212,7 @@ func New(
 	host.RemoveStreamHandler("/p2p/id/delta/1.0.0")
 	s.host = host
 	s.peers = peers.New(s.host)
+	pubsub.TimeCacheDuration = 550 * gossipSubHeartbeatInterval
 
 	s.pubsub, err = pubsub.NewGossipSub(s.ctx, s.host, s.pubsubOptions()...)
 	if err != nil {
