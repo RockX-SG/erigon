@@ -33,7 +33,7 @@ func StartSentinelService(cfg *sentinel.SentinelConfig, db kv.RoDB, srvCfg *Serv
 	if err := sent.Start(); err != nil {
 		return nil, err
 	}
-	gossip_topics := []sentinel.GossipTopic{
+	/*gossip_topics := []sentinel.GossipTopic{
 		sentinel.BeaconBlockSsz,
 		// Cause problem due to buggy msg id will uncomment in the future.
 		//sentinel.BeaconAggregateAndProofSsz,
@@ -42,8 +42,8 @@ func StartSentinelService(cfg *sentinel.SentinelConfig, db kv.RoDB, srvCfg *Serv
 		//sentinel.AttesterSlashingSsz,
 		sentinel.LightClientFinalityUpdateSsz,
 		sentinel.LightClientOptimisticUpdateSsz,
-	}
-	for _, v := range gossip_topics {
+	}*/
+	/*for _, v := range gossip_topics {
 		// now lets separately connect to the gossip topics. this joins the room
 		subscriber, err := sent.SubscribeGossip(v)
 		if err != nil {
@@ -54,7 +54,7 @@ func StartSentinelService(cfg *sentinel.SentinelConfig, db kv.RoDB, srvCfg *Serv
 		if err != nil {
 			log.Error("[Sentinel] failed to start sentinel", "err", err)
 		}
-	}
+	}*/
 	log.Info("[Sentinel] Sentinel started", "enr", sent.String())
 	if initialStatus != nil {
 		sent.SetStatus(initialStatus)
