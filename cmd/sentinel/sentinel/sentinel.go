@@ -222,8 +222,8 @@ func (s *Sentinel) pubsubOptions() []pubsub.Option {
 		pubsub.WithPeerOutboundQueueSize(pubsubQueueSize),
 		pubsub.WithMaxMessageSize(int(s.cfg.NetworkConfig.GossipMaxSize)),
 		pubsub.WithValidateQueueSize(pubsubQueueSize),
-		pubsub.WithPeerScore(s.peerScoringParams()),
-		//pubsub.WithPeerScoreInspect(s.peerInspector, time.Minute),
+		/*pubsub.WithPeerScore(s.peerScoringParams()),
+		pubsub.WithPeerScoreInspect(s.peerInspector, time.Minute),*/
 		pubsub.WithGossipSubParams(pubsubGossipParam()),
 	}
 	return psOpts
