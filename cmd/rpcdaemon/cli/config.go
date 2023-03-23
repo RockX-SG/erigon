@@ -754,14 +754,13 @@ func grpcConnect(creds credentials.TransportCredentials, dialAddress string) (*g
 	backoffCfg := backoff.DefaultConfig
 	backoffCfg.BaseDelay = 500 * time.Millisecond
 	backoffCfg.MaxDelay = 10 * time.Second
-	size := int(4 * datasize.MB)
 	dialOpts = []grpc.DialOption{
 		grpc.WithConnectParams(grpc.ConnectParams{Backoff: backoffCfg, MinConnectTimeout: 10 * time.Minute}),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(int(200 * datasize.MB))),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{}),
-		grpc.WithReadBufferSize(size),
-		grpc.WithInitialWindowSize(int32(size)),
-		grpc.WithInitialConnWindowSize(int32(size)),
+		grpc.WithReadBufferSize(0),
+		grpc.WithInitialWindowSize(int32(datasize.MB)),
+		grpc.WithInitialConnWindowSize(int32(4 * datasize.MB)),
 	}
 	if creds == nil {
 		dialOpts = append(dialOpts, grpc.WithInsecure())
