@@ -6,6 +6,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/c2h5oh/datasize"
+	"google.golang.org/grpc/backoff"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 	"net"
 	"net/http"
 	"os"
@@ -285,7 +289,7 @@ func RemoteServices(ctx context.Context, cfg httpcfg.HttpCfg, logger log.Logger,
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, ff, nil, fmt.Errorf("open tls cert: %w", err)
 	}
-	conn, err := grpcutil.Connect(creds, cfg.PrivateApiAddr)
+	conn, err := grpcConnect(creds, cfg.PrivateApiAddr)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, ff, nil, fmt.Errorf("could not connect to execution service privateApi: %w", err)
 	}
@@ -742,4 +746,31 @@ func createEngineListener(cfg httpcfg.HttpCfg, engineApi []rpc.API) (*http.Serve
 	log.Info("HTTP endpoint opened for Engine API", engineInfo...)
 
 	return engineListener, engineSrv, engineAddr.String(), nil
+}
+
+func grpcConnect(creds credentials.TransportCredentials, dialAddress string) (*grpc.ClientConn, error) {
+	var dialOpts []grpc.DialOption
+
+	backoffCfg := backoff.DefaultConfig
+	backoffCfg.BaseDelay = 500 * time.Millisecond
+	backoffCfg.MaxDelay = 10 * time.Second
+	size := int(4 * datasize.MB)
+	dialOpts = []grpc.DialOption{
+		grpc.WithConnectParams(grpc.ConnectParams{Backoff: backoffCfg, MinConnectTimeout: 10 * time.Minute}),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(int(200 * datasize.MB))),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{}),
+		grpc.WithReadBufferSize(size),
+		grpc.WithInitialWindowSize(int32(size)),
+		grpc.WithInitialConnWindowSize(int32(size)),
+	}
+	if creds == nil {
+		dialOpts = append(dialOpts, grpc.WithInsecure())
+	} else {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(creds))
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	return grpc.DialContext(ctx, dialAddress, dialOpts...)
 }
